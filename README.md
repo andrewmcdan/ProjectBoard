@@ -1,4 +1,4 @@
-# AMcDan10's K8S Project
+# AMcDan10's K3S Project
 
 This repo has the files created for Internet Programming. 
 
