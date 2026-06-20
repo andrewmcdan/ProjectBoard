@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: amcdan10-app
+  namespace: amcdan10
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: amcdan10-app
+  template:
+    metadata:
+      labels:
+        app: amcdan10-app
+    spec:
+      containers:
+        - name: amcdan10-app
+          image: ghcr.io/andrewmcdan/amcdan10-app:v1
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: amcdan10-app
+  namespace: amcdan10
+spec:
+  selector:
+    app: amcdan10-app
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: amcdan10-app
+  namespace: amcdan10
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: amcdan10.k3s.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: amcdan10-app
+                port:
+                  number: 80
