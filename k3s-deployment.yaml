@@ -15,9 +15,9 @@ spec:
     spec:
       containers:
         - name: amcdan10-app
-          image: ghcr.io/andrewmcdan/amcdan10-app:v1
+          image: ghcr.io/andrewmcdan/amcdan10-app:v2.a3
           ports:
-            - containerPort: 80
+            - containerPort: 3000
           resources:
             requests:
               cpu: 100m
@@ -36,7 +36,7 @@ spec:
     app: amcdan10-app
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: 3000
   type: ClusterIP
 ---
 apiVersion: networking.k8s.io/v1

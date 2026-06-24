@@ -14,10 +14,10 @@ spec:
     spec:
       containers:
         - name: amcdan10-app
-          image: amcdan10-app:v1
+          image: amcdan10-app:v2.a3
           imagePullPolicy: Never
           ports:
-            - containerPort: 80
+            - containerPort: 3000
           resources:
             requests:
               cpu: 100m
@@ -34,6 +34,6 @@ spec:
   selector:
     app: amcdan10-app
   ports:
-    - port: 80
-      targetPort: 80
+    - port: 3000
+      targetPort: 3000
   type: NodePort
