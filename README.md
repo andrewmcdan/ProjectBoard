@@ -8,6 +8,8 @@
 - Placeholder pages for login, registration, dashboard, project board, issue creation, feature creation, detail views, and settings
 - Shared card and section components
 - Starter Prisma schema that matches the project overview and supports optional issue-to-feature links
+- Prisma seed script with a small starter dataset
+- Dashboard and project board pages that read seeded placeholder data from MariaDB through Prisma
 - `.env.example` values for local development
 
 ## Getting started
@@ -24,7 +26,11 @@ npm install
 cp .env.example .env
 ```
 
-3. Update `DATABASE_URL` and `AUTH_SECRET` in `.env`.
+3. Start MariaDB:
+
+```bash
+docker compose up -d mariadb
+```
 
 4. Generate the Prisma client:
 
@@ -32,11 +38,20 @@ cp .env.example .env
 npm run prisma:generate
 ```
 
-5. Start the app:
+5. Push the schema and seed the database:
+
+```bash
+npm run prisma:push
+npm run prisma:seed
+```
+
+6. Start the app:
 
 ```bash
 npm run dev
 ```
+
+After seeding, the dashboard and `/projects/classboard` will load placeholder records from MariaDB.
 
 ## Local Docker Compose
 
@@ -46,7 +61,16 @@ Use Compose when you want the app and MariaDB running together outside Kubernete
 docker compose up --build
 ```
 
-The app will be available at `http://localhost:3000` and MariaDB at `localhost:3306`.
+The app will be available at `http://localhost:3000` and MariaDB at `localhost:3306`. If you only want the database, run `docker compose up -d mariadb`.
+
+## Useful commands
+
+```bash
+npm run prisma:generate
+npm run prisma:push
+npm run prisma:seed
+npm run build
+```
 
 ## Kubernetes notes
 
@@ -57,7 +81,6 @@ The app will be available at `http://localhost:3000` and MariaDB at `localhost:3
 ## Next steps
 
 - Wire up Auth.js routes and session handling
-- Run the first Prisma migration against MariaDB
-- Replace placeholder data with real server queries
+- Replace the remaining placeholder views with real server queries
 - Add create/edit forms with validation and authorization
 - Flesh out the feature CRUD flow and linked-issue views
