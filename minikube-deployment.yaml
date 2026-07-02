@@ -1,23 +1,164 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: amcdan10
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: projectboard-env
+  namespace: amcdan10
+type: Opaque
+stringData:
+  DATABASE_URL: mysql://projectboard:projectboard-password@mariadb:3306/projectboard
+  AUTH_SECRET: YFneJnvbC2OQSD6Wtx6h04O3PEbZqEr6GpnzTkRZljGTOMdm8qlT9vxLUtIyxp5k
+  AUTH_URL: http://projectboard.local
+  MARIADB_DATABASE: projectboard
+  MARIADB_USER: projectboard
+  MARIADB_PASSWORD: projectboard-password
+  MARIADB_ROOT_PASSWORD: rootpassword
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mariadb-data
+  namespace: amcdan10
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: amcdan10-app
+  name: mariadb
+  namespace: amcdan10
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: amcdan10-app
+      app: mariadb
   template:
     metadata:
       labels:
-        app: amcdan10-app
+        app: mariadb
     spec:
       containers:
-        - name: amcdan10-app
-          image: amcdan10-app:v2.a3
+        - name: mariadb
+          image: mariadb:11.8
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MARIADB_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: projectboard-env
+                  key: MARIADB_DATABASE
+            - name: MARIADB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: projectboard-env
+                  key: MARIADB_USER
+            - name: MARIADB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: projectboard-env
+                  key: MARIADB_PASSWORD
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: projectboard-env
+                  key: MARIADB_ROOT_PASSWORD
+          volumeMounts:
+            - name: mariadb-data
+              mountPath: /var/lib/mysql
+          readinessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: mariadb-data
+          persistentVolumeClaim:
+            claimName: mariadb-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb
+  namespace: amcdan10
+spec:
+  selector:
+    app: mariadb
+  ports:
+    - port: 3306
+      targetPort: 3306
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: projectboard
+  namespace: amcdan10
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: projectboard
+  template:
+    metadata:
+      labels:
+        app: projectboard
+    spec:
+      containers:
+        - name: projectboard
+          image: projectboard:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 3000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: projectboard-env
+                  key: DATABASE_URL
+            - name: AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: projectboard-env
+                  key: AUTH_SECRET
+            - name: AUTH_URL
+              valueFrom:
+                secretKeyRef:
+                  name: projectboard-env
+                  key: AUTH_URL
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 20
           resources:
             requests:
               cpu: 100m
@@ -29,10 +170,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: amcdan10-app
+  name: projectboard
+  namespace: amcdan10
 spec:
   selector:
-    app: amcdan10-app
+    app: projectboard
   ports:
     - port: 3000
       targetPort: 3000

@@ -1,0 +1,36 @@
+services:
+  mariadb:
+    image: mariadb:11.8
+    container_name: projectboard-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-projectboard}
+      MARIADB_USER: ${MARIADB_USER:-projectboard}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-projectboard-password}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-rootpassword}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -uroot -p$MARIADB_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: projectboard-app
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: mysql://${MARIADB_USER:-projectboard}:${MARIADB_PASSWORD:-projectboard-password}@mariadb:3306/${MARIADB_DATABASE:-projectboard}
+      AUTH_SECRET: ${AUTH_SECRET:-AYkvJvvdvJW4lHvfS/dFE5z+kev1PBZzyXU9n5kzUUQ+ht+vGHjhgMUjLOCcoXIZ}
+      AUTH_URL: http://localhost:3000
+
+volumes:
+  mariadb-data:
