@@ -1,5 +1,6 @@
 const nextConfig = {
-  output: "standalone",
+    output: "standalone",
+    allowedDevOrigins: ["10.0.6.37"],
 };
 
 export default nextConfig;

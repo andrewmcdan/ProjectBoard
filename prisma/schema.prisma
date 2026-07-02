@@ -1,0 +1,162 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProjectRole {
+  OWNER
+  MEMBER
+}
+
+enum IssueStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum IssuePriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model User {
+  id              String          @id @default(cuid())
+  name            String
+  email           String          @unique
+  passwordHash    String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  ownedProjects   Project[]       @relation("ProjectOwner")
+  memberships     ProjectMember[]
+  assignedIssues  Issue[]         @relation("IssueAssignee")
+  createdIssues   Issue[]         @relation("IssueCreator")
+  assignedFeatures Feature[]      @relation("FeatureAssignee")
+  createdFeatures  Feature[]      @relation("FeatureCreator")
+  issueComments    IssueComment[]
+  featureComments  FeatureComment[]
+}
+
+model Project {
+  id          String          @id @default(cuid())
+  name        String
+  description String?         @db.Text
+  ownerId     String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  owner       User            @relation("ProjectOwner", fields: [ownerId], references: [id])
+  members     ProjectMember[]
+  features    Feature[]
+  issues      Issue[]
+  labels      Label[]
+}
+
+model Feature {
+  id            String          @id @default(cuid())
+  projectId     String
+  title         String
+  description   String?         @db.Text
+  status        IssueStatus     @default(TODO)
+  priority      IssuePriority   @default(MEDIUM)
+  assignedTo    String?
+  createdBy     String
+  dueDate       DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  project       Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee      User?           @relation("FeatureAssignee", fields: [assignedTo], references: [id])
+  creator       User            @relation("FeatureCreator", fields: [createdBy], references: [id])
+  issues        Issue[]
+  comments      FeatureComment[]
+  featureLabels FeatureLabel[]
+}
+
+model ProjectMember {
+  id        String      @id @default(cuid())
+  projectId String
+  userId    String
+  role      ProjectRole @default(MEMBER)
+  createdAt DateTime    @default(now())
+  project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+}
+
+model Issue {
+  id          String          @id @default(cuid())
+  projectId   String
+  featureId   String?
+  title       String
+  description String?         @db.Text
+  status      IssueStatus     @default(TODO)
+  priority    IssuePriority   @default(MEDIUM)
+  assignedTo  String?
+  createdBy   String
+  dueDate     DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  feature     Feature?        @relation(fields: [featureId], references: [id], onDelete: SetNull)
+  assignee    User?           @relation("IssueAssignee", fields: [assignedTo], references: [id])
+  creator     User            @relation("IssueCreator", fields: [createdBy], references: [id])
+  comments    IssueComment[]
+  issueLabels IssueLabel[]
+}
+
+model IssueComment {
+  id        String   @id @default(cuid())
+  issueId   String
+  userId    String
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model FeatureComment {
+  id        String   @id @default(cuid())
+  featureId String
+  userId    String
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  feature   Feature  @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Label {
+  id        String       @id @default(cuid())
+  projectId String
+  name      String
+  color     String
+  createdAt DateTime     @default(now())
+  project   Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  features  FeatureLabel[]
+  issues    IssueLabel[]
+
+  @@unique([projectId, name])
+}
+
+model IssueLabel {
+  issueId String
+  labelId String
+  issue   Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  label   Label @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([issueId, labelId])
+}
+
+model FeatureLabel {
+  featureId String
+  labelId   String
+  feature   Feature @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  label     Label   @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([featureId, labelId])
+}
