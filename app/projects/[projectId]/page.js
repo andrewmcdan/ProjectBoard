@@ -5,6 +5,7 @@ import { requireUser } from "../../../lib/auth-helpers";
 
 export const dynamic = "force-dynamic";
 
+// The data helper checks membership before giving this page any project details.
 export default async function ProjectBoardPage({ params }) {
     const { projectId } = await params;
     const user = await requireUser();
@@ -13,10 +14,10 @@ export default async function ProjectBoardPage({ params }) {
     if (!project) {
         return (
             <SiteShell>
-                <section className="section">
-                    <p className="eyebrow">Project Board</p>
+                <section className="page-card">
+                    <p className="small-heading">Project Board</p>
                     <h1>Project not found</h1>
-                    <p className="muted">This project does not exist or you are not a member.</p>
+                    <p className="subtext">This project does not exist or you are not a member.</p>
                 </section>
             </SiteShell>
         );
@@ -24,59 +25,58 @@ export default async function ProjectBoardPage({ params }) {
 
     return (
         <SiteShell>
-            <section className="board">
-                <div className="sectionHeader">
+            <section className="project-board">
+                <div className="card-heading">
                     <div>
-                        <p className="eyebrow">Project Board</p>
+                        <p className="small-heading">Project Board</p>
                         <h1>{project.name}</h1>
                     </div>
-                    <div className="actions">
-                        <Link href={`/issues/new?projectId=${project.id}`} className="buttonLink">New Issue</Link>
-                        <Link href={`/features/new?projectId=${project.id}`} className="ghostLink">New Feature</Link>
+                    <div className="button-row">
+                        <Link href={`/issues/new?projectId=${project.id}`} className="main-button">New Issue</Link>
+                        <Link href={`/features/new?projectId=${project.id}`} className="plain-button">New Feature</Link>
                     </div>
                 </div>
-                <p className="muted">
+                <p className="subtext">
                     {project.description} · {project.members.map((member) => member.name).join(", ")}
                 </p>
-                <div className="boardColumns">
+                {/* Issues and features share the same three status columns. */}
+                <div className="project-columns">
                     {project.boardColumns.map((column) => (
-                        <section key={column.id} className="column">
-                            <div className="columnHeader">
+                        <section key={column.id} className="project-column">
+                            <div className="column-heading">
                                 <h3>{column.name}</h3>
-                                <span className={`statusPill ${column.className}`}>
+                                <span className={`status-tag ${column.className}`}>
                                     {column.issues.length} issues / {column.features.length} features
                                 </span>
                             </div>
-                            <div className="issueStack">
+                            <div className="work-list">
                                 {column.features.map((feature) => (
-                                    <article key={feature.id} className="issueCard">
-                                        <p className="eyebrow">{feature.id}</p>
+                                    <article key={feature.id} className="work-card">
+                                        <p className="small-heading">{feature.id}</p>
                                         <h3>{feature.title}</h3>
-                                        <div className="metaRow">
-                                            <span className="pill">{feature.assignee}</span>
-                                            <span className="pill">{feature.priority}</span>
-                                            <span className="statusPill">Feature</span>
+                                        <div className="tag-row">
+                                            <span className="tag">{feature.assignee}</span>
+                                            <span className="tag">{feature.priority}</span>
+                                            <span className="status-tag">Feature</span>
                                         </div>
-                                        <div className="actions">
-                                            <Link href={`/features/${feature.id}`} className="ghostLink">
+                                        <div className="button-row">
+                                            <Link href={`/features/${feature.id}`} className="plain-button">
                                                 View feature
                                             </Link>
                                         </div>
                                     </article>
                                 ))}
-                            </div>
-                            <div className="issueStack">
                                 {column.issues.map((issue) => (
-                                    <article key={issue.id} className="issueCard">
-                                        <p className="eyebrow">{issue.id}</p>
+                                    <article key={issue.id} className="work-card">
+                                        <p className="small-heading">{issue.id}</p>
                                         <h3>{issue.title}</h3>
-                                        <div className="metaRow">
-                                            <span className="pill">{issue.assignee}</span>
-                                            <span className="pill">{issue.priority}</span>
-                                            {issue.feature ? <span className="pill">Feature: {issue.feature}</span> : null}
+                                        <div className="tag-row">
+                                            <span className="tag">{issue.assignee}</span>
+                                            <span className="tag">{issue.priority}</span>
+                                            {issue.feature ? <span className="tag">Feature: {issue.feature}</span> : null}
                                         </div>
-                                        <div className="actions">
-                                            <Link href={`/issues/${issue.id}`} className="ghostLink">
+                                        <div className="button-row">
+                                            <Link href={`/issues/${issue.id}`} className="plain-button">
                                                 View issue
                                             </Link>
                                         </div>

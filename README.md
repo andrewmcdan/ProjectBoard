@@ -18,6 +18,16 @@ npm run dev
 
 Open <http://localhost:3000>. The seed accounts are:
 
+To use a different development port, forward the option to Next.js after `--`:
+
+```bash
+npm run dev -- --port 4000
+```
+
+Auth.js uses the incoming browser host in local development, so sign-in works from both
+`http://localhost:<port>` and a LAN address such as `http://10.0.6.18:<port>`. Restart the
+development server after changing `.env` values.
+
 - `andrew@example.com` / `projectboard`
 - `maya@example.com` / `projectboard`
 

@@ -1,4 +1,5 @@
 services:
+  # MariaDB stores users, projects, work items, labels, and comments.
   mariadb:
     image: mariadb:11.8
     container_name: projectboard-mariadb
@@ -18,6 +19,7 @@ services:
       timeout: 5s
       retries: 10
 
+  # Wait for the database health check before starting Next.js.
   app:
     build: .
     container_name: projectboard-app
@@ -30,7 +32,8 @@ services:
     environment:
       DATABASE_URL: mysql://${MARIADB_USER:-projectboard}:${MARIADB_PASSWORD:-projectboard-password}@mariadb:3306/${MARIADB_DATABASE:-projectboard}
       AUTH_SECRET: ${AUTH_SECRET:-AYkvJvvdvJW4lHvfS/dFE5z+kev1PBZzyXU9n5kzUUQ+ht+vGHjhgMUjLOCcoXIZ}
-      AUTH_URL: http://localhost:3000
+      # This lets localhost and LAN-IP sign-ins both keep the browser's hostname.
+      AUTH_TRUST_HOST: "true"
 
 volumes:
   mariadb-data:

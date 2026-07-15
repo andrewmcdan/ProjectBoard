@@ -11,25 +11,26 @@ const navItems = [
     { href: "/settings", label: "Settings" },
 ];
 
+// Every page shares this header. The session decides whether app links or Sign in is shown.
 export async function SiteShell({ children }) {
     const session = await auth();
     return (
-        <div className="page">
-            <header className="shell topbar">
+        <div className="app-page">
+            <header className="wrapper header-bar">
                 <Link href="/" className="brand">
-                    <span className="brandMark">PB</span>
+                    <span className="logo-box">PB</span>
                     <span>ProjectBoard</span>
                 </Link>
-                <nav className="nav" aria-label="Primary">
+                <nav className="nav-menu" aria-label="Primary">
                     {session?.user ? navItems.map((item) => (
-                        <Link key={item.href} href={item.href} className="navLink">
+                        <Link key={item.href} href={item.href} className="nav-button">
                             {item.label}
                         </Link>
                     )) : null}
-                    {session?.user ? <form action={logoutAction}><button className="navLink" type="submit">Sign out</button></form> : <Link className="navLink" href="/login">Sign in</Link>}
+                    {session?.user ? <form action={logoutAction}><button className="nav-button" type="submit">Sign out</button></form> : <Link className="nav-button" href="/login">Sign in</Link>}
                 </nav>
             </header>
-            <main className="shell">{children}</main>
+            <main className="wrapper">{children}</main>
         </div>
     );
 }

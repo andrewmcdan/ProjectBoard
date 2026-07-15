@@ -1,9 +1,11 @@
 import { PrismaClient, IssuePriority, IssueStatus, ProjectRole } from "@prisma/client";
 import { hashPassword } from "../lib/password.js";
 
+// Seed data gives local development a realistic board without manual setup.
 const prisma = new PrismaClient();
 
 async function main() {
+    // Delete child records first so foreign-key constraints are satisfied.
     await prisma.featureLabel.deleteMany();
     await prisma.issueLabel.deleteMany();
     await prisma.featureComment.deleteMany();

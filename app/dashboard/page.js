@@ -6,6 +6,7 @@ import { requireUser } from "../../lib/auth-helpers";
 
 export const dynamic = "force-dynamic";
 
+// The dashboard is protected and only loads projects the current user belongs to.
 export default async function DashboardPage({ searchParams }) {
     const user = await requireUser();
     const projects = await getDashboardProjects(user.id);
@@ -16,27 +17,28 @@ export default async function DashboardPage({ searchParams }) {
             <SectionCard
                 title={`${user.name}'s Projects`}
                 eyebrow="Dashboard"
-                actions={<Link href="/projects/new" className="buttonLink">Create Project</Link>}
+                actions={<Link href="/projects/new" className="main-button">Create Project</Link>}
             >
-                {error ? <p className="errorMessage">{error}</p> : null}
-                <div className="cardGrid">
+                {error ? <p className="error-box">{error}</p> : null}
+                <div className="card-list">
                     {projects.map((project) => (
-                        <article key={project.id} className="card">
+                        <article key={project.id} className="info-card">
                             <h3>{project.name}</h3>
-                            <p className="muted">{project.description}</p>
-                            <div className="metaRow">
-                                <span className="pill">{project.members} team members</span>
-                                <span className="pill">{project.openIssues} active issues</span>
-                                <span className="pill">{project.openFeatures} active features</span>
+                            <p className="subtext">{project.description}</p>
+                            <div className="tag-row">
+                                <span className="tag">{project.members} team members</span>
+                                <span className="tag">{project.openIssues} active issues</span>
+                                <span className="tag">{project.openFeatures} active features</span>
                             </div>
-                            <div className="actions">
-                                <Link href={`/projects/${project.id}`} className="ghostLink">
+                            <div className="button-row">
+                                <Link href={`/projects/${project.id}`} className="plain-button">
                                     Open board
                                 </Link>
+                                {project.canEdit ? <Link href={`/projects/${project.id}/edit`} className="plain-button">Edit project</Link> : null}
                             </div>
                         </article>
                     ))}
-                    {!projects.length ? <p className="muted">You do not have any projects yet.</p> : null}
+                    {!projects.length ? <p className="subtext">You do not have any projects yet.</p> : null}
                 </div>
             </SectionCard>
         </SiteShell>
