@@ -9,6 +9,7 @@ export default async function NewIssuePage({ searchParams }) {
     const { projectId, featureId = "", error } = await searchParams;
     if (!projectId) redirect("/dashboard?error=Choose%20a%20project%20before%20creating%20an%20issue");
     if (!(await requireProjectMember(projectId))) redirect("/dashboard?error=Project%20access%20denied");
+    // This nested query gets every option the form needs instead of doing three separate queries.
     const project = await prisma.project.findUnique({ where: { id: projectId }, include: { members: { include: { user: true } }, features: { orderBy: { title: "asc" } }, labels: true } });
     return (
         <SiteShell>
@@ -90,6 +91,7 @@ function Selects({ members, features, featureId }) {
     );
 }
 function LabelChoices({ labels }) {
+    // The ternary returns the fieldset when labels exist, or nothing when the list is empty.
     return labels.length ? (
         <fieldset className="label-options">
             <legend>Labels</legend>

@@ -22,6 +22,7 @@ export async function SiteShell({ children }) {
                     <span>ProjectBoard</span>
                 </Link>
                 <nav className="nav-menu" aria-label="Primary">
+                    {/* Optional chaining avoids errors for guests; the ternary only maps links for members. */}
                     {session?.user
                         ? navItems.map((item) => (
                               <Link key={item.href} href={item.href} className="nav-button">
@@ -29,6 +30,7 @@ export async function SiteShell({ children }) {
                               </Link>
                           ))
                         : null}
+                    {/* The same session check swaps Sign out and Sign in without a separate header. */}
                     {session?.user ? (
                         <form action={logoutAction}>
                             <button className="nav-button" type="submit">

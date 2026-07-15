@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function FeatureDetailPage({ params, searchParams }) {
     const { featureId } = await params;
     const { edit } = await searchParams;
+    // The nested includes grab the project team, labels, linked issues, and comment authors all at once.
     const feature = await prisma.feature.findUnique({ where: { id: featureId }, include: { project: { include: { members: { include: { user: true } }, labels: true } }, featureLabels: { include: { label: true } }, issues: { orderBy: { createdAt: "asc" } }, comments: { orderBy: { createdAt: "asc" }, include: { user: true } } } });
     if (!feature || !(await requireProjectMember(feature.projectId))) notFound();
 
@@ -25,6 +26,7 @@ export default async function FeatureDetailPage({ params, searchParams }) {
                         </p>
                         <h1>{feature.title}</h1>
                     </div>
+                    {/* This ternary switches the heading button based on the URL's edit flag. */}
                     {edit === "1" ? (
                         <Link href={`/features/${feature.id}`} className="plain-button">
                             Cancel editing
@@ -63,6 +65,7 @@ export default async function FeatureDetailPage({ params, searchParams }) {
 
 function FeatureDetails({ feature }) {
     // Look up the assignee's display name from the project's member list.
+    // find may return undefined, so optional chaining and ?? turn that case into "Unassigned."
     const assignee = feature.project.members.find(({ userId }) => userId === feature.assignedTo)?.user.name ?? "Unassigned";
     return (
         <>
@@ -104,6 +107,7 @@ function FeatureDetails({ feature }) {
 }
 
 function FeatureForm({ feature }) {
+    // A Set makes selected.has(label.id) simple and fast while rendering checkboxes.
     const selected = new Set(feature.featureLabels.map(({ labelId }) => labelId));
     return (
         <form action={updateFeatureAction}>
@@ -142,6 +146,7 @@ function FeatureForm({ feature }) {
                 </label>
                 <label className="form-field">
                     <span>Due date</span>
+                    {/* Convert Prisma's Date object into the YYYY-MM-DD format this input expects. */}
                     <input name="dueDate" type="date" defaultValue={feature.dueDate?.toISOString().slice(0, 10) ?? ""} />
                 </label>
             </div>

@@ -17,6 +17,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     .trim()
                     .toLowerCase();
                 const user = await prisma.user.findUnique({ where: { email } });
+                // || short-circuits, so password checking only happens after a matching user is found.
                 if (!user || !verifyPassword(String(credentials?.password ?? ""), user.passwordHash)) return null;
                 return { id: user.id, name: user.name, email: user.email };
             },

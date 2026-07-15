@@ -83,6 +83,7 @@ function GuestHome() {
 
 function MemberHome({ user, projects }) {
     // Add up the per-project counts for the summary cards at the top.
+    // reduce carries one running totals object through the whole projects array.
     const totals = projects.reduce(
         (summary, project) => ({
             work: summary.work + project.totalWork,
@@ -141,6 +142,7 @@ function MemberHome({ user, projects }) {
             >
                 <div className="card-list">
                     {projects.map((project) => {
+                        // Avoid dividing by zero, then round the finished-work fraction into a whole percent.
                         const completion = project.totalWork ? Math.round((project.done / project.totalWork) * 100) : 0;
                         return (
                             <article key={project.id} className="info-card">
@@ -187,6 +189,8 @@ function MemberHome({ user, projects }) {
 export default async function HomePage() {
     // Only query project data when a user is actually signed in.
     const session = await auth();
+    // Optional chaining safely checks the session, and the ternary skips the query for guests.
     const projects = session?.user?.id ? await getDashboardProjects(session.user.id) : null;
+    // This ternary picks the member homepage or public homepage from the same route.
     return <SiteShell>{session?.user ? <MemberHome user={session.user} projects={projects} /> : <GuestHome />}</SiteShell>;
 }

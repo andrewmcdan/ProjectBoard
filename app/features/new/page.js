@@ -9,6 +9,7 @@ export default async function NewFeaturePage({ searchParams }) {
     const { projectId, error } = await searchParams;
     if (!projectId) redirect("/dashboard?error=Choose%20a%20project%20before%20creating%20a%20feature");
     if (!(await requireProjectMember(projectId))) redirect("/dashboard?error=Project%20access%20denied");
+    // include tells Prisma to attach related member users and labels to the project result.
     const project = await prisma.project.findUnique({ where: { id: projectId }, include: { members: { include: { user: true } }, labels: true } });
     return (
         <SiteShell>

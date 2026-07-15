@@ -48,6 +48,7 @@ button {
 }
 
 .wrapper {
+    /* min() keeps content under the max width while still leaving room on small screens. */
     width: min(var(--max-width), calc(100% - 2rem));
     margin: 0 auto;
 }
@@ -213,6 +214,7 @@ button {
 }
 
 .card-list {
+    /* auto-fit creates as many cards as fit, and minmax stops them from getting too narrow. */
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 

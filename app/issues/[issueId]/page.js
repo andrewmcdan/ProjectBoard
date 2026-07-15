@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function IssueDetailPage({ params, searchParams }) {
     const { issueId } = await params;
     const { edit } = await searchParams;
+    // Nested includes load the project choices, comments, and labels with the issue in one query.
     const issue = await prisma.issue.findUnique({
         where: { id: issueId },
         include: {
@@ -32,6 +33,7 @@ export default async function IssueDetailPage({ params, searchParams }) {
                         </p>
                         <h1>{issue.title}</h1>
                     </div>
+                    {/* This ternary shows Cancel in edit mode and Edit in normal mode. */}
                     {edit === "1" ? (
                         <Link href={`/issues/${issue.id}`} className="plain-button">
                             Cancel editing
@@ -56,6 +58,7 @@ export default async function IssueDetailPage({ params, searchParams }) {
 
 function IssueDetails({ issue }) {
     // Relations store IDs, so turn them back into names for the read-only view.
+    // find returns the matching member; ?. and ?? provide a safe fallback when nobody is assigned.
     const assignee = issue.project.members.find(({ userId }) => userId === issue.assignedTo)?.user.name ?? "Unassigned";
     const feature = issue.project.features.find(({ id }) => id === issue.featureId)?.title ?? "None";
     return (
@@ -102,6 +105,7 @@ function IssueDetails({ issue }) {
 }
 
 function IssueForm({ issue }) {
+    // Store selected label IDs in a Set so every checkbox can check membership with .has().
     const selected = new Set(issue.issueLabels.map(({ labelId }) => labelId));
     return (
         <form action={updateIssueAction}>
@@ -151,6 +155,7 @@ function IssueForm({ issue }) {
                 </label>
                 <label className="form-field">
                     <span>Due date</span>
+                    {/* HTML date inputs need YYYY-MM-DD, so slice removes the time from the ISO string. */}
                     <input name="dueDate" type="date" defaultValue={issue.dueDate?.toISOString().slice(0, 10) ?? ""} />
                 </label>
             </div>

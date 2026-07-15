@@ -60,6 +60,7 @@ export default async function EditProjectPage({ params, searchParams }) {
                     </label>
                     <label className="form-field">
                         <span>Team member emails</span>
+                        {/* map gets each email, and join puts one on each line in the textarea. */}
                         <textarea
                             name="memberEmails"
                             defaultValue={project.members.map(({ user: member }) => member.email).join("\n")}

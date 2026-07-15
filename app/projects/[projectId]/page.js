@@ -41,6 +41,7 @@ export default async function ProjectBoardPage({ params }) {
                     </div>
                 </div>
                 <p className="subtext">
+                    {/* map pulls out member names, then join turns the array into readable comma-separated text. */}
                     {project.description} · {project.members.map((member) => member.name).join(", ")}
                 </p>
                 {/* Issues and features share the same three status columns. */}
@@ -77,6 +78,7 @@ export default async function ProjectBoardPage({ params }) {
                                         <div className="tag-row">
                                             <span className="tag">{issue.assignee}</span>
                                             <span className="tag">{issue.priority}</span>
+                                            {/* Only render the feature tag when this issue is actually linked to one. */}
                                             {issue.feature ? <span className="tag">Feature: {issue.feature}</span> : null}
                                         </div>
                                         <div className="button-row">
