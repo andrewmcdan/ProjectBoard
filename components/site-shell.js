@@ -1,14 +1,7 @@
 import Link from "next/link";
 import { auth } from "../auth";
 import { logoutAction } from "../app/actions";
-
-const navItems = [
-    { href: "/", label: "Home" },
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/projects/new", label: "New Project" },
-    { href: "/work/new", label: "New Issue or Feature" },
-    { href: "/settings", label: "Settings" },
-];
+import { PrimaryNav } from "./primary-nav";
 
 // Every page shares this header. The session decides whether app links or Sign in is shown.
 export async function SiteShell({ children }) {
@@ -21,14 +14,8 @@ export async function SiteShell({ children }) {
                     <span>ProjectBoard</span>
                 </Link>
                 <nav className="nav-menu" aria-label="Primary">
-                    {/* Optional chaining avoids errors for guests; the ternary only maps links for members. */}
-                    {session?.user
-                        ? navItems.map((item) => (
-                              <Link key={item.href} href={item.href} className="nav-button">
-                                  {item.label}
-                              </Link>
-                          ))
-                        : null}
+                    {/* The client-side nav reads the current URL so it can highlight the active page. */}
+                    {session?.user ? <PrimaryNav /> : null}
                     {/* The same session check swaps Sign out and Sign in without a separate header. */}
                     {session?.user ? (
                         <form action={logoutAction}>

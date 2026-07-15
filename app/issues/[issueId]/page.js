@@ -4,7 +4,7 @@ import { Markdown } from "../../../components/markdown";
 import { SiteShell } from "../../../components/site-shell";
 import { requireProjectMember } from "../../../lib/auth-helpers";
 import { prisma } from "../../../lib/prisma";
-import { addIssueCommentAction, updateIssueAction } from "../../actions";
+import { addIssueCommentAction, deleteIssueCommentAction, updateIssueAction } from "../../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +21,9 @@ export default async function IssueDetailPage({ params, searchParams }) {
             issueLabels: { include: { label: true } },
         },
     });
-    if (!issue || !(await requireProjectMember(issue.projectId))) notFound();
+    if (!issue) notFound();
+    const access = await requireProjectMember(issue.projectId);
+    if (!access) notFound();
 
     return (
         <SiteShell>
@@ -49,7 +51,7 @@ export default async function IssueDetailPage({ params, searchParams }) {
                         <h2>Details</h2>
                         {edit === "1" ? <IssueForm issue={issue} /> : <IssueDetails issue={issue} />}
                     </section>
-                    <Discussion comments={issue.comments} issueId={issue.id} />
+                    <Discussion comments={issue.comments} issueId={issue.id} currentUserId={access.user.id} />
                 </div>
             </section>
         </SiteShell>
@@ -184,17 +186,18 @@ function IssueForm({ issue }) {
     );
 }
 
-function Discussion({ comments, issueId }) {
+function Discussion({ comments, issueId, currentUserId }) {
     // Comments stay editable through a separate form even when issue fields are read-only.
     return (
         <section className="details-box">
             <h2>Discussion</h2>
-            <ul className="item-list">
+            <ul className="item-list comment-list">
                 {comments.map((comment) => (
                     <li className="item-box" key={comment.id}>
                         <strong>{comment.user.name}</strong>
                         <Markdown>{comment.body}</Markdown>
                         <small className="subtext">{comment.createdAt.toLocaleString()}</small>
+                        {comment.userId === currentUserId ? <form action={deleteIssueCommentAction}><input type="hidden" name="commentId" value={comment.id} /><button type="submit" className="delete-button">Delete comment</button></form> : null}
                     </li>
                 ))}
                 {!comments.length ? <li className="subtext">No comments yet.</li> : null}

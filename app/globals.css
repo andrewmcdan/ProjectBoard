@@ -104,10 +104,34 @@ button {
     background: rgba(255, 255, 255, 0.6);
 }
 
+.nav-button.current-page {
+    border-color: var(--accent);
+    color: var(--accent-dark);
+    background: var(--accent-soft);
+    box-shadow: inset 0 -2px 0 var(--accent);
+    font-weight: 700;
+}
+
 .main-button {
     color: #fff;
     background: var(--accent);
     border: 1px solid var(--accent);
+}
+
+.delete-button {
+    width: fit-content;
+    margin-top: 0.75rem;
+    padding: 0.35rem 0;
+    border: 0;
+    color: #9b3022;
+    background: transparent;
+    font-size: 0.82rem;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+}
+
+.delete-button:hover {
+    color: #6f1d14;
 }
 
 .main-button:hover,
@@ -206,6 +230,14 @@ button {
     padding: 1.1rem;
 }
 
+/* Grid children normally use their content width, so zero lets long Markdown shrink safely. */
+.details-layout > *,
+.details-box,
+.description-box,
+.item-box {
+    min-width: 0;
+}
+
 .number-card strong {
     display: block;
     font-size: 2rem;
@@ -271,6 +303,9 @@ button {
 
 /* Rendered Markdown descriptions and comments */
 .markdown-content {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     line-height: 1.65;
     overflow-wrap: anywhere;
 }
@@ -306,8 +341,10 @@ button {
 }
 
 .markdown-content pre {
+    width: 100%;
     max-width: 100%;
     overflow-x: auto;
+    white-space: pre;
     border-radius: 0.8rem;
     padding: 1rem;
     background: #272b35;
@@ -472,6 +509,15 @@ button {
     padding: 0;
     margin: 0;
     list-style: none;
+}
+
+/* Keep long discussions contained while leaving the comment form visible below them. */
+.comment-list {
+    max-height: 42rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 0.4rem;
+    scrollbar-gutter: stable;
 }
 
 .item-box {

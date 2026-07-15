@@ -248,6 +248,22 @@ export async function addIssueCommentAction(formData) {
     revalidatePath(`/issues/${issueId}`);
 }
 
+export async function deleteIssueCommentAction(formData) {
+    const user = await requireUser();
+    const commentId = text(formData, "commentId");
+    const comment = await prisma.issueComment.findUnique({
+        where: { id: commentId },
+        include: { issue: { select: { id: true, projectId: true } } },
+    });
+
+    // Checking both values makes sure the author still has access to the comment's project.
+    if (!comment || comment.userId !== user.id || !(await requireProjectMember(comment.issue.projectId))) {
+        redirect("/dashboard?error=You%20can%20only%20delete%20your%20own%20comments");
+    }
+    await prisma.issueComment.delete({ where: { id: comment.id } });
+    revalidatePath(`/issues/${comment.issue.id}`);
+}
+
 export async function createFeatureAction(formData) {
     const { projectId, user } = await workContext(formData);
     const title = text(formData, "title");
@@ -305,4 +321,20 @@ export async function addFeatureCommentAction(formData) {
     if (!feature || !(await requireProjectMember(feature.projectId))) redirect("/dashboard?error=Feature%20access%20denied");
     if (body) await prisma.featureComment.create({ data: { featureId, userId: (await requireUser()).id, body } });
     revalidatePath(`/features/${featureId}`);
+}
+
+export async function deleteFeatureCommentAction(formData) {
+    const user = await requireUser();
+    const commentId = text(formData, "commentId");
+    const comment = await prisma.featureComment.findUnique({
+        where: { id: commentId },
+        include: { feature: { select: { id: true, projectId: true } } },
+    });
+
+    // The UI hides other delete buttons, but this server check is the real authorization.
+    if (!comment || comment.userId !== user.id || !(await requireProjectMember(comment.feature.projectId))) {
+        redirect("/dashboard?error=You%20can%20only%20delete%20your%20own%20comments");
+    }
+    await prisma.featureComment.delete({ where: { id: comment.id } });
+    revalidatePath(`/features/${comment.feature.id}`);
 }

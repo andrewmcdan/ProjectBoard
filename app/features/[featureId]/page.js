@@ -4,7 +4,7 @@ import { Markdown } from "../../../components/markdown";
 import { SiteShell } from "../../../components/site-shell";
 import { requireProjectMember } from "../../../lib/auth-helpers";
 import { prisma } from "../../../lib/prisma";
-import { addFeatureCommentAction, updateFeatureAction } from "../../actions";
+import { addFeatureCommentAction, deleteFeatureCommentAction, updateFeatureAction } from "../../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +14,9 @@ export default async function FeatureDetailPage({ params, searchParams }) {
     const { edit } = await searchParams;
     // The nested includes grab the project team, labels, linked issues, and comment authors all at once.
     const feature = await prisma.feature.findUnique({ where: { id: featureId }, include: { project: { include: { members: { include: { user: true } }, labels: true } }, featureLabels: { include: { label: true } }, issues: { orderBy: { createdAt: "asc" } }, comments: { orderBy: { createdAt: "asc" }, include: { user: true } } } });
-    if (!feature || !(await requireProjectMember(feature.projectId))) notFound();
+    if (!feature) notFound();
+    const access = await requireProjectMember(feature.projectId);
+    if (!access) notFound();
 
     return (
         <SiteShell>
@@ -56,7 +58,7 @@ export default async function FeatureDetailPage({ params, searchParams }) {
                             </Link>
                         </div>
                     </section>
-                    <Discussion comments={feature.comments} featureId={feature.id} />
+                    <Discussion comments={feature.comments} featureId={feature.id} currentUserId={access.user.id} />
                 </div>
             </section>
         </SiteShell>
@@ -175,17 +177,18 @@ function FeatureForm({ feature }) {
     );
 }
 
-function Discussion({ comments, featureId }) {
+function Discussion({ comments, featureId, currentUserId }) {
     // Markdown is stored as plain text and only rendered when the page is displayed.
     return (
         <section className="details-box">
             <h2>Discussion</h2>
-            <ul className="item-list">
+            <ul className="item-list comment-list">
                 {comments.map((comment) => (
                     <li className="item-box" key={comment.id}>
                         <strong>{comment.user.name}</strong>
                         <Markdown>{comment.body}</Markdown>
                         <small className="subtext">{comment.createdAt.toLocaleString()}</small>
+                        {comment.userId === currentUserId ? <form action={deleteFeatureCommentAction}><input type="hidden" name="commentId" value={comment.id} /><button type="submit" className="delete-button">Delete comment</button></form> : null}
                     </li>
                 ))}
                 {!comments.length ? <li className="subtext">No comments yet.</li> : null}
