@@ -32,11 +32,8 @@ export default async function ProjectBoardPage({ params }) {
                         <h1>{project.name}</h1>
                     </div>
                     <div className="button-row">
-                        <Link href={`/issues/new?projectId=${project.id}`} className="main-button">
-                            New Issue
-                        </Link>
-                        <Link href={`/features/new?projectId=${project.id}`} className="plain-button">
-                            New Feature
+                        <Link href={`/work/new?type=issue&projectId=${project.id}`} className="main-button">
+                            New Issue or Feature
                         </Link>
                     </div>
                 </div>

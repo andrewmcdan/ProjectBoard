@@ -170,6 +170,7 @@ function IssueForm({ issue }) {
             <label className="form-field">
                 <span>Description (Markdown supported)</span>
                 <textarea name="description" defaultValue={issue.description ?? ""} maxLength={10000} />
+                <small className="subtext">You can use headings, lists, links, quotes, and code.</small>
             </label>
             <div className="button-row">
                 <button className="main-button" type="submit">
@@ -203,6 +204,7 @@ function Discussion({ comments, issueId }) {
                 <label className="form-field">
                     <span>Add comment (Markdown supported)</span>
                     <textarea name="body" required maxLength={5000} />
+                    <small className="subtext">You can use headings, lists, links, quotes, and code.</small>
                 </label>
                 <div className="button-row">
                     <button className="main-button" type="submit">

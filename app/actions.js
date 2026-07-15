@@ -189,7 +189,7 @@ async function workContext(formData) {
 export async function createIssueAction(formData) {
     const { projectId, user } = await workContext(formData);
     const title = text(formData, "title");
-    if (!title) redirect(`/issues/new?projectId=${projectId}&error=Title%20is%20required`);
+    if (!title) redirect(`/work/new?type=issue&projectId=${projectId}&error=Title%20is%20required`);
     const labelIds = selectedLabels(formData);
     const issue = await prisma.issue.create({
         data: {
@@ -251,7 +251,7 @@ export async function addIssueCommentAction(formData) {
 export async function createFeatureAction(formData) {
     const { projectId, user } = await workContext(formData);
     const title = text(formData, "title");
-    if (!title) redirect(`/features/new?projectId=${projectId}&error=Title%20is%20required`);
+    if (!title) redirect(`/work/new?type=feature&projectId=${projectId}&error=Title%20is%20required`);
     const feature = await prisma.feature.create({
         data: {
             projectId,

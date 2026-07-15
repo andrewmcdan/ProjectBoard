@@ -51,7 +51,7 @@ export default async function FeatureDetailPage({ params, searchParams }) {
                             {!feature.issues.length ? <li className="subtext">No linked issues.</li> : null}
                         </ul>
                         <div className="button-row">
-                            <Link className="plain-button" href={`/issues/new?projectId=${feature.projectId}&featureId=${feature.id}`}>
+                            <Link className="plain-button" href={`/work/new?type=issue&projectId=${feature.projectId}&featureId=${feature.id}`}>
                                 Create linked issue
                             </Link>
                         </div>
@@ -161,6 +161,7 @@ function FeatureForm({ feature }) {
             <label className="form-field">
                 <span>Description (Markdown supported)</span>
                 <textarea name="description" defaultValue={feature.description ?? ""} maxLength={10000} />
+                <small className="subtext">You can use headings, lists, links, quotes, and code.</small>
             </label>
             <div className="button-row">
                 <button className="main-button" type="submit">
@@ -194,6 +195,7 @@ function Discussion({ comments, featureId }) {
                 <label className="form-field">
                     <span>Add comment (Markdown supported)</span>
                     <textarea name="body" required maxLength={5000} />
+                    <small className="subtext">You can use headings, lists, links, quotes, and code.</small>
                 </label>
                 <div className="button-row">
                     <button className="main-button" type="submit">
