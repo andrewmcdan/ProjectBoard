@@ -42,6 +42,8 @@ textarea {
     font: inherit;
 }
 
+button { cursor: pointer; }
+
 .shell {
     width: min(var(--max-width), calc(100% - 2rem));
     margin: 0 auto;
@@ -323,6 +325,19 @@ textarea {
     border-radius: 1rem;
     background: var(--panel-strong);
 }
+
+.errorMessage {
+    padding: 0.8rem 1rem;
+    border: 1px solid #c96351;
+    border-radius: 0.9rem;
+    color: #7d2419;
+    background: #fde4de;
+}
+
+small { font-size: 0.82rem; }
+
+.labelChoices { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1rem 0; border: 1px solid var(--line); border-radius: 0.9rem; }
+.labelChoices label { display: flex; align-items: center; gap: 0.25rem; }
 
 @media (max-width: 720px) {
     .topbar,

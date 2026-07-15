@@ -2,19 +2,23 @@ import Link from "next/link";
 import { SectionCard } from "../../components/section-card";
 import { SiteShell } from "../../components/site-shell";
 import { getDashboardProjects } from "../../lib/project-data";
+import { requireUser } from "../../lib/auth-helpers";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
-    const projects = await getDashboardProjects();
+export default async function DashboardPage({ searchParams }) {
+    const user = await requireUser();
+    const projects = await getDashboardProjects(user.id);
+    const { error } = await searchParams;
 
     return (
         <SiteShell>
             <SectionCard
-                title="Your Projects"
+                title={`${user.name}'s Projects`}
                 eyebrow="Dashboard"
                 actions={<Link href="/projects/new" className="buttonLink">Create Project</Link>}
             >
+                {error ? <p className="errorMessage">{error}</p> : null}
                 <div className="cardGrid">
                     {projects.map((project) => (
                         <article key={project.id} className="card">
@@ -32,6 +36,7 @@ export default async function DashboardPage() {
                             </div>
                         </article>
                     ))}
+                    {!projects.length ? <p className="muted">You do not have any projects yet.</p> : null}
                 </div>
             </SectionCard>
         </SiteShell>

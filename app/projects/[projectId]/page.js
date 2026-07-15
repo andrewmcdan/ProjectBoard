@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { SiteShell } from "../../../components/site-shell";
 import { getProjectBoard } from "../../../lib/project-data";
+import { requireUser } from "../../../lib/auth-helpers";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProjectBoardPage({ params }) {
     const { projectId } = await params;
-    const project = await getProjectBoard(projectId);
+    const user = await requireUser();
+    const project = await getProjectBoard(projectId, user.id);
 
     if (!project) {
         return (
@@ -14,7 +16,7 @@ export default async function ProjectBoardPage({ params }) {
                 <section className="section">
                     <p className="eyebrow">Project Board</p>
                     <h1>Project not found</h1>
-                    <p className="muted">Seed the database and open a known project such as `classboard`.</p>
+                    <p className="muted">This project does not exist or you are not a member.</p>
                 </section>
             </SiteShell>
         );
@@ -29,12 +31,12 @@ export default async function ProjectBoardPage({ params }) {
                         <h1>{project.name}</h1>
                     </div>
                     <div className="actions">
-                        <Link href="/issues/new" className="buttonLink">New Issue</Link>
-                        <Link href="/features/new" className="ghostLink">New Feature</Link>
+                        <Link href={`/issues/new?projectId=${project.id}`} className="buttonLink">New Issue</Link>
+                        <Link href={`/features/new?projectId=${project.id}`} className="ghostLink">New Feature</Link>
                     </div>
                 </div>
                 <p className="muted">
-                    This board is now reading seeded placeholder records from MariaDB through Prisma.
+                    {project.description} · {project.members.map((member) => member.name).join(", ")}
                 </p>
                 <div className="boardColumns">
                     {project.boardColumns.map((column) => (

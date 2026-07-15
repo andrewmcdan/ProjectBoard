@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { auth } from "../auth";
+import { logoutAction } from "../app/actions";
 
 const navItems = [
     { href: "/", label: "Home" },
@@ -9,7 +11,8 @@ const navItems = [
     { href: "/settings", label: "Settings" },
 ];
 
-export function SiteShell({ children }) {
+export async function SiteShell({ children }) {
+    const session = await auth();
     return (
         <div className="page">
             <header className="shell topbar">
@@ -18,11 +21,12 @@ export function SiteShell({ children }) {
                     <span>ProjectBoard</span>
                 </Link>
                 <nav className="nav" aria-label="Primary">
-                    {navItems.map((item) => (
+                    {session?.user ? navItems.map((item) => (
                         <Link key={item.href} href={item.href} className="navLink">
                             {item.label}
                         </Link>
-                    ))}
+                    )) : null}
+                    {session?.user ? <form action={logoutAction}><button className="navLink" type="submit">Sign out</button></form> : <Link className="navLink" href="/login">Sign in</Link>}
                 </nav>
             </header>
             <main className="shell">{children}</main>

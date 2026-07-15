@@ -1,45 +1,15 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { SiteShell } from "../../../components/site-shell";
-import { comments, features } from "../../../lib/mock-data";
+import { addFeatureCommentAction, updateFeatureAction } from "../../actions";
+import { requireProjectMember } from "../../../lib/auth-helpers";
+import { prisma } from "../../../lib/prisma";
 
+export const dynamic = "force-dynamic";
 export default async function FeatureDetailPage({ params }) {
     const { featureId } = await params;
-    const feature = features.find((item) => item.id === featureId) ?? features[0];
-
-    return (
-        <SiteShell>
-            <section className="section">
-                <p className="eyebrow">Feature Detail</p>
-                <h1>{featureId}</h1>
-                <p className="muted">Server-rendered placeholder detail page for feature metadata, linked issues, labels, and comments.</p>
-                <div className="detailGrid">
-                    <section className="detailPanel">
-                        <h3>Overview</h3>
-                        <div className="metaRow">
-                            <span className="statusPill statusProgress">{feature.status}</span>
-                            <span className="pill">{feature.priority} priority</span>
-                            <span className="pill">{feature.linkedIssues} linked issues</span>
-                        </div>
-                        <p className="muted">
-                            Replace this content with database-backed feature details, edit actions, and lists of linked issues.
-                        </p>
-                        <div className="actions">
-                            <Link href="/issues/new" className="ghostLink">Create linked issue</Link>
-                        </div>
-                    </section>
-                    <section className="detailPanel">
-                        <h3>Discussion</h3>
-                        <ul className="list">
-                            {comments.map((comment) => (
-                                <li key={comment.id} className="listItem">
-                                    <strong>{comment.author}</strong>
-                                    <p className="muted">{comment.body}</p>
-                                </li>
-                            ))}
-                        </ul>
-                    </section>
-                </div>
-            </section>
-        </SiteShell>
-    );
+    const feature = await prisma.feature.findUnique({ where: { id: featureId }, include: { project: { include: { members: { include: { user: true } }, labels: true } }, featureLabels: true, issues: { orderBy: { createdAt: "asc" } }, comments: { orderBy: { createdAt: "asc" }, include: { user: true } } } });
+    if (!feature || !(await requireProjectMember(feature.projectId))) notFound();
+    const selected = new Set(feature.featureLabels.map(({ labelId }) => labelId));
+    return <SiteShell><section className="section"><p className="eyebrow"><Link href={`/projects/${feature.projectId}`}>{feature.project.name}</Link> · Feature</p><h1>{feature.title}</h1><div className="detailGrid"><section className="detailPanel"><h2>Details</h2><form action={updateFeatureAction}><input type="hidden" name="featureId" value={feature.id} /><label className="field"><span>Title</span><input name="title" defaultValue={feature.title} required /></label><div className="formGrid"><label className="field"><span>Status</span><select name="status" defaultValue={feature.status}><option value="TODO">Todo</option><option value="IN_PROGRESS">In Progress</option><option value="DONE">Done</option></select></label><label className="field"><span>Priority</span><select name="priority" defaultValue={feature.priority}><option value="LOW">Low</option><option value="MEDIUM">Medium</option><option value="HIGH">High</option></select></label><label className="field"><span>Assignee</span><select name="assignedTo" defaultValue={feature.assignedTo ?? ""}><option value="">Unassigned</option>{feature.project.members.map(({ user }) => <option key={user.id} value={user.id}>{user.name}</option>)}</select></label><label className="field"><span>Due date</span><input name="dueDate" type="date" defaultValue={feature.dueDate?.toISOString().slice(0, 10) ?? ""} /></label></div><fieldset className="labelChoices"><legend>Labels</legend>{feature.project.labels.map((label) => <label key={label.id}><input type="checkbox" name="labelIds" value={label.id} defaultChecked={selected.has(label.id)} /> <span className="pill">{label.name}</span></label>)}</fieldset><label className="field"><span>Description</span><textarea name="description" defaultValue={feature.description ?? ""} /></label><div className="actions"><button className="buttonLink" type="submit">Save changes</button><Link className="ghostLink" href={`/issues/new?projectId=${feature.projectId}&featureId=${feature.id}`}>Create linked issue</Link></div></form><h3>Linked issues</h3><ul className="list">{feature.issues.map((issue) => <li className="listItem" key={issue.id}><Link href={`/issues/${issue.id}`}>{issue.title}</Link> <span className="pill">{issue.status.replace("_", " ")}</span></li>)}{!feature.issues.length ? <li className="muted">No linked issues.</li> : null}</ul></section><section className="detailPanel"><h2>Discussion</h2><ul className="list">{feature.comments.map((comment) => <li className="listItem" key={comment.id}><strong>{comment.user.name}</strong><p>{comment.body}</p><small className="muted">{comment.createdAt.toLocaleString()}</small></li>)}{!feature.comments.length ? <li className="muted">No comments yet.</li> : null}</ul><form action={addFeatureCommentAction}><input type="hidden" name="featureId" value={feature.id} /><label className="field"><span>Add comment</span><textarea name="body" required /></label><div className="actions"><button className="buttonLink" type="submit">Comment</button></div></form></section></div></section></SiteShell>;
 }

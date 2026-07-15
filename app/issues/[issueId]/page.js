@@ -1,41 +1,17 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
 import { SiteShell } from "../../../components/site-shell";
-import { comments } from "../../../lib/mock-data";
+import { addIssueCommentAction, updateIssueAction } from "../../actions";
+import { requireProjectMember } from "../../../lib/auth-helpers";
+import { prisma } from "../../../lib/prisma";
 
+export const dynamic = "force-dynamic";
 export default async function IssueDetailPage({ params }) {
     const { issueId } = await params;
-
-    return (
-        <SiteShell>
-            <section className="section">
-                <p className="eyebrow">Issue Detail</p>
-                <h1>{issueId}</h1>
-                <p className="muted">Server-rendered placeholder detail page for issue metadata, labels, and comments.</p>
-                <div className="detailGrid">
-                    <section className="detailPanel">
-                        <h3>Overview</h3>
-                        <div className="metaRow">
-                            <span className="statusPill statusProgress">In Progress</span>
-                            <span className="pill">High priority</span>
-                            <span className="pill">Due Jul 15</span>
-                            <span className="pill">Linked feature: Project Dashboard</span>
-                        </div>
-                        <p className="muted">
-                            Replace this content with database-backed issue details, edit actions, assignee controls, and optional feature linkage.
-                        </p>
-                    </section>
-                    <section className="detailPanel">
-                        <h3>Discussion</h3>
-                        <ul className="list">
-                            {comments.map((comment) => (
-                                <li key={comment.id} className="listItem">
-                                    <strong>{comment.author}</strong>
-                                    <p className="muted">{comment.body}</p>
-                                </li>
-                            ))}
-                        </ul>
-                    </section>
-                </div>
-            </section>
-        </SiteShell>
-    );
+    const issue = await prisma.issue.findUnique({ where: { id: issueId }, include: { project: { include: { members: { include: { user: true } }, features: true, labels: true } }, comments: { orderBy: { createdAt: "asc" }, include: { user: true } }, issueLabels: { include: { label: true } } } });
+    if (!issue || !(await requireProjectMember(issue.projectId))) notFound();
+    return <SiteShell><section className="section"><p className="eyebrow"><Link href={`/projects/${issue.projectId}`}>{issue.project.name}</Link> · Issue</p><h1>{issue.title}</h1><div className="detailGrid"><section className="detailPanel"><h2>Details</h2><form action={updateIssueAction}><input type="hidden" name="issueId" value={issue.id} /><WorkFields item={issue} members={issue.project.members} features={issue.project.features} /><div className="actions"><button className="buttonLink" type="submit">Save changes</button></div></form></section><Discussion comments={issue.comments} issueId={issue.id} /></div></section></SiteShell>;
 }
+
+function WorkFields({ item, members, features }) { const selected = new Set(item.issueLabels.map(({ labelId }) => labelId)); return <><label className="field"><span>Title</span><input name="title" defaultValue={item.title} required /></label><div className="formGrid"><label className="field"><span>Status</span><select name="status" defaultValue={item.status}><option value="TODO">Todo</option><option value="IN_PROGRESS">In Progress</option><option value="DONE">Done</option></select></label><label className="field"><span>Priority</span><select name="priority" defaultValue={item.priority}><option value="LOW">Low</option><option value="MEDIUM">Medium</option><option value="HIGH">High</option></select></label><label className="field"><span>Assignee</span><select name="assignedTo" defaultValue={item.assignedTo ?? ""}><option value="">Unassigned</option>{members.map(({ user }) => <option key={user.id} value={user.id}>{user.name}</option>)}</select></label><label className="field"><span>Feature</span><select name="featureId" defaultValue={item.featureId ?? ""}><option value="">None</option>{features.map((feature) => <option key={feature.id} value={feature.id}>{feature.title}</option>)}</select></label><label className="field"><span>Due date</span><input name="dueDate" type="date" defaultValue={item.dueDate?.toISOString().slice(0, 10) ?? ""} /></label></div><fieldset className="labelChoices"><legend>Labels</legend>{item.project.labels.map((label) => <label key={label.id}><input type="checkbox" name="labelIds" value={label.id} defaultChecked={selected.has(label.id)} /> <span className="pill">{label.name}</span></label>)}</fieldset><label className="field"><span>Description</span><textarea name="description" defaultValue={item.description ?? ""} /></label></>; }
+function Discussion({ comments, issueId }) { return <section className="detailPanel"><h2>Discussion</h2><ul className="list">{comments.map((comment) => <li className="listItem" key={comment.id}><strong>{comment.user.name}</strong><p>{comment.body}</p><small className="muted">{comment.createdAt.toLocaleString()}</small></li>)}{!comments.length ? <li className="muted">No comments yet.</li> : null}</ul><form action={addIssueCommentAction}><input type="hidden" name="issueId" value={issueId} /><label className="field"><span>Add comment</span><textarea name="body" required maxLength={5000} /></label><div className="actions"><button className="buttonLink" type="submit">Comment</button></div></form></section>; }

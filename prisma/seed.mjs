@@ -1,4 +1,5 @@
 import { PrismaClient, IssuePriority, IssueStatus, ProjectRole } from "@prisma/client";
+import { hashPassword } from "../lib/password.js";
 
 const prisma = new PrismaClient();
 
@@ -19,6 +20,7 @@ async function main() {
             id: "user-andrew",
             name: "Andrew",
             email: "andrew@example.com",
+            passwordHash: hashPassword("projectboard"),
         },
     });
 
@@ -27,6 +29,7 @@ async function main() {
             id: "user-maya",
             name: "Maya",
             email: "maya@example.com",
+            passwordHash: hashPassword("projectboard"),
         },
     });
 

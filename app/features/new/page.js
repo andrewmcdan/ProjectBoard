@@ -1,42 +1,13 @@
+import { redirect } from "next/navigation";
 import { SiteShell } from "../../../components/site-shell";
+import { createFeatureAction } from "../../actions";
+import { requireProjectMember } from "../../../lib/auth-helpers";
+import { prisma } from "../../../lib/prisma";
 
-export default function NewFeaturePage() {
-    return (
-        <SiteShell>
-            <section className="section">
-                <p className="eyebrow">Features</p>
-                <h1>Create a feature</h1>
-                <p className="muted">Placeholder feature form that mirrors the issue flow.</p>
-                <div className="formGrid">
-                    <label className="field">
-                        <span>Title</span>
-                        <input type="text" placeholder="Project dashboard" />
-                    </label>
-                    <label className="field">
-                        <span>Status</span>
-                        <select defaultValue="TODO">
-                            <option value="TODO">Todo</option>
-                            <option value="IN_PROGRESS">In Progress</option>
-                            <option value="DONE">Done</option>
-                        </select>
-                    </label>
-                    <label className="field">
-                        <span>Assignee</span>
-                        <input type="text" placeholder="Select a project member" />
-                    </label>
-                    <label className="field">
-                        <span>Due date</span>
-                        <input type="date" />
-                    </label>
-                </div>
-                <label className="field">
-                    <span>Description</span>
-                    <textarea placeholder="Describe the capability this feature should deliver." />
-                </label>
-                <div className="actions">
-                    <button type="button" className="buttonLink">Create feature</button>
-                </div>
-            </section>
-        </SiteShell>
-    );
+export default async function NewFeaturePage({ searchParams }) {
+    const { projectId, error } = await searchParams;
+    if (!projectId) redirect("/dashboard?error=Choose%20a%20project%20before%20creating%20a%20feature");
+    if (!(await requireProjectMember(projectId))) redirect("/dashboard?error=Project%20access%20denied");
+    const project = await prisma.project.findUnique({ where: { id: projectId }, include: { members: { include: { user: true } }, labels: true } });
+    return <SiteShell><section className="section"><p className="eyebrow">{project.name}</p><h1>Create a feature</h1>{error ? <p className="errorMessage">{error}</p> : null}<form action={createFeatureAction}><input type="hidden" name="projectId" value={projectId} /><div className="formGrid"><label className="field"><span>Title</span><input name="title" required maxLength={180} /></label><label className="field"><span>Status</span><select name="status"><option value="TODO">Todo</option><option value="IN_PROGRESS">In Progress</option><option value="DONE">Done</option></select></label><label className="field"><span>Priority</span><select name="priority"><option value="LOW">Low</option><option value="MEDIUM">Medium</option><option value="HIGH">High</option></select></label><label className="field"><span>Assignee</span><select name="assignedTo"><option value="">Unassigned</option>{project.members.map(({ user }) => <option key={user.id} value={user.id}>{user.name}</option>)}</select></label><label className="field"><span>Due date</span><input name="dueDate" type="date" /></label></div><fieldset className="labelChoices"><legend>Labels</legend>{project.labels.map((label) => <label key={label.id}><input type="checkbox" name="labelIds" value={label.id} /> <span className="pill">{label.name}</span></label>)}</fieldset><label className="field"><span>Description</span><textarea name="description" maxLength={10000} /></label><div className="actions"><button className="buttonLink" type="submit">Create feature</button></div></form></section></SiteShell>;
 }
