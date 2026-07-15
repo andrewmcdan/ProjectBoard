@@ -9,6 +9,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN npm run prisma:generate
 RUN npm run build
 
 # The final image only needs standalone output, not source files or dev tools.
