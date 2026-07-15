@@ -43,7 +43,9 @@ textarea {
     font: inherit;
 }
 
-button { cursor: pointer; }
+button {
+    cursor: pointer;
+}
 
 .wrapper {
     width: min(var(--max-width), calc(100% - 2rem));
@@ -479,10 +481,23 @@ button { cursor: pointer; }
     background: #d8ebdc;
 }
 
-small { font-size: 0.82rem; }
+small {
+    font-size: 0.82rem;
+}
 
-.label-options { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1rem 0; border: 1px solid var(--line); border-radius: 0.9rem; }
-.label-options label { display: flex; align-items: center; gap: 0.25rem; }
+.label-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 1rem 0;
+    border: 1px solid var(--line);
+    border-radius: 0.9rem;
+}
+.label-options label {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
 
 /* Stack crowded layouts on phones and narrow browser windows. */
 @media (max-width: 720px) {

@@ -14,12 +14,10 @@ function GuestHome() {
                 <div className="welcome-content">
                     <div>
                         <p className="small-heading">CS 4720 Term Project</p>
-                        <h1>ProjectBoard</h1><h2>Keep projects visible.</h2>
+                        <h1>ProjectBoard</h1>
+                        <h2>Keep projects visible.</h2>
                     </div>
-                    <p className="intro-text">
-                        A server-rendered project board for small teams. Organize projects, issues, features,
-                        assignments, labels, due dates, and team discussions in one place.
-                    </p>
+                    <p className="intro-text">A server-rendered project board for small teams. Organize projects, issues, features, assignments, labels, due dates, and team discussions in one place.</p>
                     <div className="button-row">
                         <Link href="/dashboard" className="main-button">
                             Open Dashboard
@@ -48,9 +46,18 @@ function GuestHome() {
 
             <SectionCard title="Everything your team needs" eyebrow="Included workflows">
                 <div className="card-list">
-                    <article className="info-card"><h3>Visual boards</h3><p className="subtext">See issues and features grouped into Todo, In Progress, and Done.</p></article>
-                    <article className="info-card"><h3>Detailed work</h3><p className="subtext">Track priority, assignee, due date, labels, descriptions, and linked issues.</p></article>
-                    <article className="info-card"><h3>Team discussion</h3><p className="subtext">Keep context attached to work with server-rendered comment threads.</p></article>
+                    <article className="info-card">
+                        <h3>Visual boards</h3>
+                        <p className="subtext">See issues and features grouped into Todo, In Progress, and Done.</p>
+                    </article>
+                    <article className="info-card">
+                        <h3>Detailed work</h3>
+                        <p className="subtext">Track priority, assignee, due date, labels, descriptions, and linked issues.</p>
+                    </article>
+                    <article className="info-card">
+                        <h3>Team discussion</h3>
+                        <p className="subtext">Keep context attached to work with server-rendered comment threads.</p>
+                    </article>
                 </div>
             </SectionCard>
 
@@ -76,35 +83,101 @@ function GuestHome() {
 
 function MemberHome({ user, projects }) {
     // Add up the per-project counts for the summary cards at the top.
-    const totals = projects.reduce((summary, project) => ({
-        work: summary.work + project.totalWork,
-        inProgress: summary.inProgress + project.inProgress,
-        done: summary.done + project.done,
-    }), { work: 0, inProgress: 0, done: 0 });
+    const totals = projects.reduce(
+        (summary, project) => ({
+            work: summary.work + project.totalWork,
+            inProgress: summary.inProgress + project.inProgress,
+            done: summary.done + project.done,
+        }),
+        { work: 0, inProgress: 0, done: 0 },
+    );
 
     return (
         <>
             <section className="welcome-box">
                 <div className="welcome-content">
-                    <div><p className="small-heading">Project overview</p><h1 className="welcome-title">Welcome back, {user.name}.</h1></div>
+                    <div>
+                        <p className="small-heading">Project overview</p>
+                        <h1 className="welcome-title">Welcome back, {user.name}.</h1>
+                    </div>
                     <p className="intro-text">Here is the latest snapshot of the projects you belong to.</p>
-                    <div className="button-row"><Link href="/projects/new" className="main-button">Create Project</Link><Link href="/dashboard" className="plain-button">Open Dashboard</Link></div>
+                    <div className="button-row">
+                        <Link href="/projects/new" className="main-button">
+                            Create Project
+                        </Link>
+                        <Link href="/dashboard" className="plain-button">
+                            Open Dashboard
+                        </Link>
+                    </div>
                 </div>
                 <div className="number-grid">
-                    <div className="number-card"><strong>{projects.length}</strong><span>projects</span></div>
-                    <div className="number-card"><strong>{totals.work}</strong><span>issues and features</span></div>
-                    <div className="number-card"><strong>{totals.inProgress}</strong><span>in progress</span></div>
-                    <div className="number-card"><strong>{totals.done}</strong><span>completed</span></div>
+                    <div className="number-card">
+                        <strong>{projects.length}</strong>
+                        <span>projects</span>
+                    </div>
+                    <div className="number-card">
+                        <strong>{totals.work}</strong>
+                        <span>issues and features</span>
+                    </div>
+                    <div className="number-card">
+                        <strong>{totals.inProgress}</strong>
+                        <span>in progress</span>
+                    </div>
+                    <div className="number-card">
+                        <strong>{totals.done}</strong>
+                        <span>completed</span>
+                    </div>
                 </div>
             </section>
 
-            <SectionCard title="Your projects" eyebrow="Current workload" actions={<Link href="/projects/new" className="plain-button">New project</Link>}>
+            <SectionCard
+                title="Your projects"
+                eyebrow="Current workload"
+                actions={
+                    <Link href="/projects/new" className="plain-button">
+                        New project
+                    </Link>
+                }
+            >
                 <div className="card-list">
                     {projects.map((project) => {
                         const completion = project.totalWork ? Math.round((project.done / project.totalWork) * 100) : 0;
-                        return <article key={project.id} className="info-card"><h3>{project.name}</h3><p className="subtext">{project.description}</p><div className="tag-row"><span className="tag">{project.members} members</span><span className="tag">{project.issues} issues</span><span className="tag">{project.features} features</span></div><p><strong>{completion}% complete</strong></p><div className="tag-row"><span className="status-tag statusTodo">{project.todo} todo</span><span className="status-tag statusProgress">{project.inProgress} in progress</span><span className="status-tag statusDone">{project.done} done</span></div><div className="button-row"><Link href={`/projects/${project.id}`} className="plain-button">Open board</Link></div></article>;
+                        return (
+                            <article key={project.id} className="info-card">
+                                <h3>{project.name}</h3>
+                                <p className="subtext">{project.description}</p>
+                                <div className="tag-row">
+                                    <span className="tag">{project.members} members</span>
+                                    <span className="tag">{project.issues} issues</span>
+                                    <span className="tag">{project.features} features</span>
+                                </div>
+                                <p>
+                                    <strong>{completion}% complete</strong>
+                                </p>
+                                <div className="tag-row">
+                                    <span className="status-tag statusTodo">{project.todo} todo</span>
+                                    <span className="status-tag statusProgress">{project.inProgress} in progress</span>
+                                    <span className="status-tag statusDone">{project.done} done</span>
+                                </div>
+                                <div className="button-row">
+                                    <Link href={`/projects/${project.id}`} className="plain-button">
+                                        Open board
+                                    </Link>
+                                </div>
+                            </article>
+                        );
                     })}
-                    {!projects.length ? <article className="info-card"><h3>No projects yet</h3><p className="subtext">Create your first project to start tracking issues and features.</p><div className="button-row"><Link href="/projects/new" className="main-button">Create Project</Link></div></article> : null}
+                    {!projects.length ? (
+                        <article className="info-card">
+                            <h3>No projects yet</h3>
+                            <p className="subtext">Create your first project to start tracking issues and features.</p>
+                            <div className="button-row">
+                                <Link href="/projects/new" className="main-button">
+                                    Create Project
+                                </Link>
+                            </div>
+                        </article>
+                    ) : null}
                 </div>
             </SectionCard>
         </>

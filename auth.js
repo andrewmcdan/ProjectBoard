@@ -13,7 +13,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             credentials: { email: {}, password: {} },
             async authorize(credentials) {
                 // Emails are stored lowercase so login is not case-sensitive.
-                const email = String(credentials?.email ?? "").trim().toLowerCase();
+                const email = String(credentials?.email ?? "")
+                    .trim()
+                    .toLowerCase();
                 const user = await prisma.user.findUnique({ where: { email } });
                 if (!user || !verifyPassword(String(credentials?.password ?? ""), user.passwordHash)) return null;
                 return { id: user.id, name: user.name, email: user.email };

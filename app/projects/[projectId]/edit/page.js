@@ -29,21 +29,54 @@ export default async function EditProjectPage({ params, searchParams }) {
     }
 
     return (
-        <SiteShell><section className="page-card">
-            <div className="card-heading"><div><p className="small-heading">Project settings</p><h1>Edit {project.name}</h1></div><Link href={`/projects/${project.id}`} className="plain-button">Back to board</Link></div>
-            {error ? <p className="error-box">{error}</p> : null}
-            {success ? <p className="success-box">{success}</p> : null}
-            <form action={updateProjectAction}>
-                <input type="hidden" name="projectId" value={project.id} />
-                <div className="form-fields">
-                    <label className="form-field"><span>Project name</span><input name="name" defaultValue={project.name} required maxLength={100} /></label>
-                    <label className="form-field"><span>Owner</span><input value={`${project.owner.name} (${project.owner.email})`} disabled /></label>
+        <SiteShell>
+            <section className="page-card">
+                <div className="card-heading">
+                    <div>
+                        <p className="small-heading">Project settings</p>
+                        <h1>Edit {project.name}</h1>
+                    </div>
+                    <Link href={`/projects/${project.id}`} className="plain-button">
+                        Back to board
+                    </Link>
                 </div>
-                <label className="form-field"><span>Description</span><textarea name="description" defaultValue={project.description ?? ""} maxLength={5000} /></label>
-                <label className="form-field"><span>Team member emails</span><textarea name="memberEmails" defaultValue={project.members.map(({ user: member }) => member.email).join("\n")} placeholder="maya@example.com&#10;student@example.com" /></label>
-                <p className="subtext">Enter one registered email per line. Removing an email removes that person from the project. The owner always stays on the team.</p>
-                <div className="button-row"><button type="submit" className="main-button">Save project</button><Link href={`/projects/${project.id}`} className="plain-button">Cancel</Link></div>
-            </form>
-        </section></SiteShell>
+                {error ? <p className="error-box">{error}</p> : null}
+                {success ? <p className="success-box">{success}</p> : null}
+                <form action={updateProjectAction}>
+                    <input type="hidden" name="projectId" value={project.id} />
+                    <div className="form-fields">
+                        <label className="form-field">
+                            <span>Project name</span>
+                            <input name="name" defaultValue={project.name} required maxLength={100} />
+                        </label>
+                        <label className="form-field">
+                            <span>Owner</span>
+                            <input value={`${project.owner.name} (${project.owner.email})`} disabled />
+                        </label>
+                    </div>
+                    <label className="form-field">
+                        <span>Description</span>
+                        <textarea name="description" defaultValue={project.description ?? ""} maxLength={5000} />
+                    </label>
+                    <label className="form-field">
+                        <span>Team member emails</span>
+                        <textarea
+                            name="memberEmails"
+                            defaultValue={project.members.map(({ user: member }) => member.email).join("\n")}
+                            placeholder="maya@example.com&#10;student@example.com"
+                        />
+                    </label>
+                    <p className="subtext">Enter one registered email per line. Removing an email removes that person from the project. The owner always stays on the team.</p>
+                    <div className="button-row">
+                        <button type="submit" className="main-button">
+                            Save project
+                        </button>
+                        <Link href={`/projects/${project.id}`} className="plain-button">
+                            Cancel
+                        </Link>
+                    </div>
+                </form>
+            </section>
+        </SiteShell>
     );
 }

@@ -17,7 +17,11 @@ export default async function DashboardPage({ searchParams }) {
             <SectionCard
                 title={`${user.name}'s Projects`}
                 eyebrow="Dashboard"
-                actions={<Link href="/projects/new" className="main-button">Create Project</Link>}
+                actions={
+                    <Link href="/projects/new" className="main-button">
+                        Create Project
+                    </Link>
+                }
             >
                 {error ? <p className="error-box">{error}</p> : null}
                 <div className="card-list">
@@ -34,7 +38,11 @@ export default async function DashboardPage({ searchParams }) {
                                 <Link href={`/projects/${project.id}`} className="plain-button">
                                     Open board
                                 </Link>
-                                {project.canEdit ? <Link href={`/projects/${project.id}/edit`} className="plain-button">Edit project</Link> : null}
+                                {project.canEdit ? (
+                                    <Link href={`/projects/${project.id}/edit`} className="plain-button">
+                                        Edit project
+                                    </Link>
+                                ) : null}
                             </div>
                         </article>
                     ))}

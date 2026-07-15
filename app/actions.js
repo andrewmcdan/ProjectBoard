@@ -69,14 +69,20 @@ export async function createProjectAction(formData) {
     const user = await requireUser();
     const name = text(formData, "name");
     if (!name) redirect("/projects/new?error=Project%20name%20is%20required");
-    const memberEmails = [...new Set(text(formData, "memberEmails")
-        .split(/[\n,]+/)
-        .map((email) => email.trim().toLowerCase())
-        .filter((email) => email && email !== user.email.toLowerCase()))];
-    const memberUsers = memberEmails.length ? await prisma.user.findMany({
-        where: { email: { in: memberEmails } },
-        select: { id: true, email: true },
-    }) : [];
+    const memberEmails = [
+        ...new Set(
+            text(formData, "memberEmails")
+                .split(/[\n,]+/)
+                .map((email) => email.trim().toLowerCase())
+                .filter((email) => email && email !== user.email.toLowerCase()),
+        ),
+    ];
+    const memberUsers = memberEmails.length
+        ? await prisma.user.findMany({
+              where: { email: { in: memberEmails } },
+              select: { id: true, email: true },
+          })
+        : [];
     const foundEmails = new Set(memberUsers.map(({ email }) => email.toLowerCase()));
     const missingEmails = memberEmails.filter((email) => !foundEmails.has(email));
 
@@ -86,7 +92,21 @@ export async function createProjectAction(formData) {
     }
 
     // Create the project, initial team, and starter labels in one database query.
-    const project = await prisma.project.create({ data: { name, description: optional(text(formData, "description")), ownerId: user.id, members: { create: [{ userId: user.id, role: "OWNER" }, ...memberUsers.map(({ id }) => ({ userId: id, role: "MEMBER" }))] }, labels: { create: [{ name: "bug", color: "#b94c35" }, { name: "enhancement", color: "#2f7d5a" }, { name: "priority", color: "#9a6b22" }] } } });
+    const project = await prisma.project.create({
+        data: {
+            name,
+            description: optional(text(formData, "description")),
+            ownerId: user.id,
+            members: { create: [{ userId: user.id, role: "OWNER" }, ...memberUsers.map(({ id }) => ({ userId: id, role: "MEMBER" }))] },
+            labels: {
+                create: [
+                    { name: "bug", color: "#b94c35" },
+                    { name: "enhancement", color: "#2f7d5a" },
+                    { name: "priority", color: "#9a6b22" },
+                ],
+            },
+        },
+    });
     redirect(`/projects/${project.id}`);
 }
 
@@ -105,14 +125,20 @@ export async function updateProjectAction(formData) {
     }
     if (!name) redirect(`/projects/${projectId}/edit?error=Project%20name%20is%20required`);
 
-    const memberEmails = [...new Set(text(formData, "memberEmails")
-        .split(/[\n,]+/)
-        .map((email) => email.trim().toLowerCase())
-        .filter((email) => email && email !== project.owner.email.toLowerCase()))];
-    const memberUsers = memberEmails.length ? await prisma.user.findMany({
-        where: { email: { in: memberEmails } },
-        select: { id: true, email: true },
-    }) : [];
+    const memberEmails = [
+        ...new Set(
+            text(formData, "memberEmails")
+                .split(/[\n,]+/)
+                .map((email) => email.trim().toLowerCase())
+                .filter((email) => email && email !== project.owner.email.toLowerCase()),
+        ),
+    ];
+    const memberUsers = memberEmails.length
+        ? await prisma.user.findMany({
+              where: { email: { in: memberEmails } },
+              select: { id: true, email: true },
+          })
+        : [];
     const foundEmails = new Set(memberUsers.map(({ email }) => email.toLowerCase()));
     const missingEmails = memberEmails.filter((email) => !foundEmails.has(email));
 
@@ -155,7 +181,20 @@ export async function createIssueAction(formData) {
     const title = text(formData, "title");
     if (!title) redirect(`/issues/new?projectId=${projectId}&error=Title%20is%20required`);
     const labelIds = selectedLabels(formData);
-    const issue = await prisma.issue.create({ data: { projectId, title, description: optional(text(formData, "description")), status: text(formData, "status") || "TODO", priority: text(formData, "priority") || "MEDIUM", assignedTo: optional(text(formData, "assignedTo")), featureId: optional(text(formData, "featureId")), dueDate: text(formData, "dueDate") ? new Date(`${text(formData, "dueDate")}T12:00:00`) : null, createdBy: user.id, issueLabels: { create: labelIds.map((labelId) => ({ labelId })) } } });
+    const issue = await prisma.issue.create({
+        data: {
+            projectId,
+            title,
+            description: optional(text(formData, "description")),
+            status: text(formData, "status") || "TODO",
+            priority: text(formData, "priority") || "MEDIUM",
+            assignedTo: optional(text(formData, "assignedTo")),
+            featureId: optional(text(formData, "featureId")),
+            dueDate: text(formData, "dueDate") ? new Date(`${text(formData, "dueDate")}T12:00:00`) : null,
+            createdBy: user.id,
+            issueLabels: { create: labelIds.map((labelId) => ({ labelId })) },
+        },
+    });
     revalidatePath(`/projects/${projectId}`);
     redirect(`/issues/${issue.id}`);
 }
@@ -165,13 +204,30 @@ export async function updateIssueAction(formData) {
     const issue = await prisma.issue.findUnique({ where: { id: issueId } });
     if (!issue || !(await requireProjectMember(issue.projectId))) redirect("/dashboard?error=Issue%20access%20denied");
     // Replace label joins and update the issue together so they cannot get out of sync.
-    await prisma.$transaction([prisma.issueLabel.deleteMany({ where: { issueId } }), prisma.issue.update({ where: { id: issueId }, data: { title: text(formData, "title"), description: optional(text(formData, "description")), status: text(formData, "status"), priority: text(formData, "priority"), assignedTo: optional(text(formData, "assignedTo")), featureId: optional(text(formData, "featureId")), dueDate: text(formData, "dueDate") ? new Date(`${text(formData, "dueDate")}T12:00:00`) : null, issueLabels: { create: selectedLabels(formData).map((labelId) => ({ labelId })) } } })]);
-    revalidatePath(`/issues/${issueId}`); revalidatePath(`/projects/${issue.projectId}`);
+    await prisma.$transaction([
+        prisma.issueLabel.deleteMany({ where: { issueId } }),
+        prisma.issue.update({
+            where: { id: issueId },
+            data: {
+                title: text(formData, "title"),
+                description: optional(text(formData, "description")),
+                status: text(formData, "status"),
+                priority: text(formData, "priority"),
+                assignedTo: optional(text(formData, "assignedTo")),
+                featureId: optional(text(formData, "featureId")),
+                dueDate: text(formData, "dueDate") ? new Date(`${text(formData, "dueDate")}T12:00:00`) : null,
+                issueLabels: { create: selectedLabels(formData).map((labelId) => ({ labelId })) },
+            },
+        }),
+    ]);
+    revalidatePath(`/issues/${issueId}`);
+    revalidatePath(`/projects/${issue.projectId}`);
     redirect(`/issues/${issueId}`);
 }
 
 export async function addIssueCommentAction(formData) {
-    const issueId = text(formData, "issueId"); const body = text(formData, "body");
+    const issueId = text(formData, "issueId");
+    const body = text(formData, "body");
     const issue = await prisma.issue.findUnique({ where: { id: issueId } });
     if (!issue || !(await requireProjectMember(issue.projectId))) redirect("/dashboard?error=Issue%20access%20denied");
     if (body) await prisma.issueComment.create({ data: { issueId, userId: (await requireUser()).id, body } });
@@ -179,23 +235,55 @@ export async function addIssueCommentAction(formData) {
 }
 
 export async function createFeatureAction(formData) {
-    const { projectId, user } = await workContext(formData); const title = text(formData, "title");
+    const { projectId, user } = await workContext(formData);
+    const title = text(formData, "title");
     if (!title) redirect(`/features/new?projectId=${projectId}&error=Title%20is%20required`);
-    const feature = await prisma.feature.create({ data: { projectId, title, description: optional(text(formData, "description")), status: text(formData, "status") || "TODO", priority: text(formData, "priority") || "MEDIUM", assignedTo: optional(text(formData, "assignedTo")), dueDate: text(formData, "dueDate") ? new Date(`${text(formData, "dueDate")}T12:00:00`) : null, createdBy: user.id, featureLabels: { create: selectedLabels(formData).map((labelId) => ({ labelId })) } } });
-    revalidatePath(`/projects/${projectId}`); redirect(`/features/${feature.id}`);
+    const feature = await prisma.feature.create({
+        data: {
+            projectId,
+            title,
+            description: optional(text(formData, "description")),
+            status: text(formData, "status") || "TODO",
+            priority: text(formData, "priority") || "MEDIUM",
+            assignedTo: optional(text(formData, "assignedTo")),
+            dueDate: text(formData, "dueDate") ? new Date(`${text(formData, "dueDate")}T12:00:00`) : null,
+            createdBy: user.id,
+            featureLabels: { create: selectedLabels(formData).map((labelId) => ({ labelId })) },
+        },
+    });
+    revalidatePath(`/projects/${projectId}`);
+    redirect(`/features/${feature.id}`);
 }
 
 export async function updateFeatureAction(formData) {
-    const featureId = text(formData, "featureId"); const feature = await prisma.feature.findUnique({ where: { id: featureId } });
+    const featureId = text(formData, "featureId");
+    const feature = await prisma.feature.findUnique({ where: { id: featureId } });
     if (!feature || !(await requireProjectMember(feature.projectId))) redirect("/dashboard?error=Feature%20access%20denied");
     // Feature labels use the same delete-and-recreate transaction as issue labels.
-    await prisma.$transaction([prisma.featureLabel.deleteMany({ where: { featureId } }), prisma.feature.update({ where: { id: featureId }, data: { title: text(formData, "title"), description: optional(text(formData, "description")), status: text(formData, "status"), priority: text(formData, "priority"), assignedTo: optional(text(formData, "assignedTo")), dueDate: text(formData, "dueDate") ? new Date(`${text(formData, "dueDate")}T12:00:00`) : null, featureLabels: { create: selectedLabels(formData).map((labelId) => ({ labelId })) } } })]);
-    revalidatePath(`/features/${featureId}`); revalidatePath(`/projects/${feature.projectId}`);
+    await prisma.$transaction([
+        prisma.featureLabel.deleteMany({ where: { featureId } }),
+        prisma.feature.update({
+            where: { id: featureId },
+            data: {
+                title: text(formData, "title"),
+                description: optional(text(formData, "description")),
+                status: text(formData, "status"),
+                priority: text(formData, "priority"),
+                assignedTo: optional(text(formData, "assignedTo")),
+                dueDate: text(formData, "dueDate") ? new Date(`${text(formData, "dueDate")}T12:00:00`) : null,
+                featureLabels: { create: selectedLabels(formData).map((labelId) => ({ labelId })) },
+            },
+        }),
+    ]);
+    revalidatePath(`/features/${featureId}`);
+    revalidatePath(`/projects/${feature.projectId}`);
     redirect(`/features/${featureId}`);
 }
 
 export async function addFeatureCommentAction(formData) {
-    const featureId = text(formData, "featureId"); const body = text(formData, "body"); const feature = await prisma.feature.findUnique({ where: { id: featureId } });
+    const featureId = text(formData, "featureId");
+    const body = text(formData, "body");
+    const feature = await prisma.feature.findUnique({ where: { id: featureId } });
     if (!feature || !(await requireProjectMember(feature.projectId))) redirect("/dashboard?error=Feature%20access%20denied");
     if (body) await prisma.featureComment.create({ data: { featureId, userId: (await requireUser()).id, body } });
     revalidatePath(`/features/${featureId}`);

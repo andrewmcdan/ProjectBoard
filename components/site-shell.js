@@ -22,12 +22,24 @@ export async function SiteShell({ children }) {
                     <span>ProjectBoard</span>
                 </Link>
                 <nav className="nav-menu" aria-label="Primary">
-                    {session?.user ? navItems.map((item) => (
-                        <Link key={item.href} href={item.href} className="nav-button">
-                            {item.label}
+                    {session?.user
+                        ? navItems.map((item) => (
+                              <Link key={item.href} href={item.href} className="nav-button">
+                                  {item.label}
+                              </Link>
+                          ))
+                        : null}
+                    {session?.user ? (
+                        <form action={logoutAction}>
+                            <button className="nav-button" type="submit">
+                                Sign out
+                            </button>
+                        </form>
+                    ) : (
+                        <Link className="nav-button" href="/login">
+                            Sign in
                         </Link>
-                    )) : null}
-                    {session?.user ? <form action={logoutAction}><button className="nav-button" type="submit">Sign out</button></form> : <Link className="nav-button" href="/login">Sign in</Link>}
+                    )}
                 </nav>
             </header>
             <main className="wrapper">{children}</main>

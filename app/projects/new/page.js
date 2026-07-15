@@ -14,28 +14,33 @@ export default async function NewProjectPage({ searchParams }) {
                 <p className="subtext">Create a workspace. You will be added as its owner.</p>
                 {error ? <p className="error-box">{error}</p> : null}
                 <form action={createProjectAction}>
-                <div className="form-fields">
+                    <div className="form-fields">
+                        <label className="form-field">
+                            <span>Project name</span>
+                            <input name="name" type="text" placeholder="ClassBoard" required maxLength={100} />
+                        </label>
+                        <label className="form-field">
+                            <span>Owner</span>
+                            <input type="text" value={user.name} disabled />
+                        </label>
+                    </div>
                     <label className="form-field">
-                        <span>Project name</span>
-                        <input name="name" type="text" placeholder="ClassBoard" required maxLength={100} />
+                        <span>Description</span>
+                        <textarea name="description" placeholder="Describe the purpose of this project and who belongs to it." maxLength={5000} />
                     </label>
                     <label className="form-field">
-                        <span>Owner</span>
-                        <input type="text" value={user.name} disabled />
+                        <span>Team member emails</span>
+                        <textarea
+                            name="memberEmails"
+                            placeholder="maya@example.com&#10;student@example.com"
+                        />
                     </label>
-                </div>
-                <label className="form-field">
-                    <span>Description</span>
-                    <textarea name="description" placeholder="Describe the purpose of this project and who belongs to it." maxLength={5000} />
-                </label>
-                <label className="form-field">
-                    <span>Team member emails</span>
-                    <textarea name="memberEmails" placeholder="maya@example.com&#10;student@example.com" />
-                </label>
-                <p className="subtext">Enter one registered email per line. You will automatically be added as the project owner.</p>
-                <div className="button-row">
-                    <button type="submit" className="main-button">Save project</button>
-                </div>
+                    <p className="subtext">Enter one registered email per line. You will automatically be added as the project owner.</p>
+                    <div className="button-row">
+                        <button type="submit" className="main-button">
+                            Save project
+                        </button>
+                    </div>
                 </form>
             </section>
         </SiteShell>
