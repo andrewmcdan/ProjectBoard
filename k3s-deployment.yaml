@@ -1,15 +1,9 @@
 apiVersion: v1
-kind: Namespace
+kind: ConfigMap
 metadata:
-  name: amcdan10
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: projectboard-env
+  name: projectboard-config
   namespace: amcdan10
-type: Opaque
-stringData:
+data:
   DATABASE_URL: mysql://projectboard:projectboard-password@mariadb:3306/projectboard
   AUTH_SECRET: u2JrdHSkiA1L1wDnrSgreOXoEpH9pU++GbUP1qvCw/X3VkD+FbNtc7oncbLCvKYo
   AUTH_URL: https://projectboard.k3s.local
@@ -51,27 +45,9 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3306
-          env:
-            - name: MARIADB_DATABASE
-              valueFrom:
-                secretKeyRef:
-                  name: projectboard-env
-                  key: MARIADB_DATABASE
-            - name: MARIADB_USER
-              valueFrom:
-                secretKeyRef:
-                  name: projectboard-env
-                  key: MARIADB_USER
-            - name: MARIADB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: projectboard-env
-                  key: MARIADB_PASSWORD
-            - name: MARIADB_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: projectboard-env
-                  key: MARIADB_ROOT_PASSWORD
+          envFrom:
+            - configMapRef:
+                name: projectboard-config
           volumeMounts:
             - name: mariadb-data
               mountPath: /var/lib/mysql
@@ -131,22 +107,9 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
-          env:
-            - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: projectboard-env
-                  key: DATABASE_URL
-            - name: AUTH_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: projectboard-env
-                  key: AUTH_SECRET
-            - name: AUTH_URL
-              valueFrom:
-                secretKeyRef:
-                  name: projectboard-env
-                  key: AUTH_URL
+          envFrom:
+            - configMapRef:
+                name: projectboard-config
           readinessProbe:
             httpGet:
               path: /

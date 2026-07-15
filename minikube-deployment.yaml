@@ -12,7 +12,7 @@ type: Opaque
 stringData:
   DATABASE_URL: mysql://projectboard:projectboard-password@mariadb:3306/projectboard
   AUTH_SECRET: YFneJnvbC2OQSD6Wtx6h04O3PEbZqEr6GpnzTkRZljGTOMdm8qlT9vxLUtIyxp5k
-  AUTH_URL: http://projectboard.local
+  AUTH_TRUST_HOST: "true"
   MARIADB_DATABASE: projectboard
   MARIADB_USER: projectboard
   MARIADB_PASSWORD: projectboard-password
@@ -142,11 +142,11 @@ spec:
                 secretKeyRef:
                   name: projectboard-env
                   key: AUTH_SECRET
-            - name: AUTH_URL
+            - name: AUTH_TRUST_HOST
               valueFrom:
                 secretKeyRef:
                   name: projectboard-env
-                  key: AUTH_URL
+                  key: AUTH_TRUST_HOST
           readinessProbe:
             httpGet:
               path: /
