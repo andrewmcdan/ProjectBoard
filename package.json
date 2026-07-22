@@ -7,6 +7,9 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:coverage": "vitest run --coverage",
         "prisma:generate": "prisma generate",
         "prisma:migrate": "prisma migrate dev",
         "prisma:push": "prisma db push",
@@ -23,7 +26,15 @@
         "remark-gfm": "^4.0.1"
     },
     "devDependencies": {
-        "prisma": "^6.16.3"
+        "@testing-library/jest-dom": "^6.9.1",
+        "@testing-library/react": "^16.3.2",
+        "@testing-library/user-event": "^14.6.1",
+        "@vitejs/plugin-react": "^6.0.4",
+        "@vitest/coverage-v8": "^4.1.10",
+        "esbuild": "^0.28.1",
+        "jsdom": "^29.1.1",
+        "prisma": "^6.16.3",
+        "vitest": "^4.1.10"
     },
     "prisma": {
         "seed": "node prisma/seed.mjs"
